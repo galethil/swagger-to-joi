@@ -1,0 +1,56 @@
+{
+  "rules": {
+    "indent": [
+      2,
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "space-before-function-paren": [
+      2,
+      {
+        "anonymous": "always",
+        "named": "never"
+      }
+    ],
+    "func-names": "off",
+    "no-use-before-define": [
+      2,
+      "nofunc"
+    ],
+    "linebreak-style": [
+      0
+    ],
+    "comma-dangle": [
+      0
+    ],
+    "max-len": [
+      1,
+      120,
+      4
+    ],
+    "no-trailing-spaces": "warn",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": true
+      }
+    ],
+    "no-underscore-dangle": [
+      0
+    ]
+  },
+  "env": {
+    "node": true,
+    "mocha": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "extends": [
+    "eslint:recommended",
+    "airbnb-base"
+  ]
+}
