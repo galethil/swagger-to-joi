@@ -1,10 +1,10 @@
-const {
- find, get, isEqual, isNumber, isPlainObject, isString, merge, set, uniqWith } = require('lodash');
-
 const getCommonProperties = (parameter) => {
   let commonProperties = '';
   if (parameter.required) {
     commonProperties += '.required()';
+  }
+  if ('description' in parameter) {
+    commonProperties += `.description(${parameter.description})`;
   }
 
   return commonProperties;
@@ -30,12 +30,92 @@ const getKeyStringText = (parameter) => {
     definition += '.hostname()';
   }
 
+  if ('pattern' in parameter) {
+    definition += `.regex(${parameter.pattern})`;
+  }
+
+  if ('enum' in parameter) {
+    definition += `.valid('${parameter.enum.join('\', \'')}')`;
+  }
+
+  return getKeyText(parameter, definition);
+};
+
+const getKeyNumberText = (parameter) => {
+  let definition = 'Joi.number()';
+
+  if ('minimum' in parameter) {
+    definition += `.min(${parameter.minimum})`;
+  }
+  if ('maximum' in parameter) {
+    definition += `.max(${parameter.maximum})`;
+  }
+
   return getKeyText(parameter, definition);
 };
 
 const getKeyIntegerText = (parameter) => {
-  let definition = 'Joi.number()';
+  const definition = `${getKeyNumberText(parameter)}.integer()`;
   return getKeyText(parameter, definition);
+};
+
+const getKeyArrayText = (parameter) => {
+  let definition = `Joi.array().items(
+    `;
+  if ('items' in parameter) {
+    // eslint-disable-next-line no-use-before-define
+    definition += getText(parameter.items);
+  } else {
+    throw Error('Array definition doesn\'t have items.');
+  }
+
+  definition += `
+)`;
+
+  return getKeyText(parameter, definition);
+};
+
+const getKeyObjectText = (parameter) => {
+  let definition = `Joi.object().keys({
+    `;
+  if ('properties' in parameter) {
+    Object.keys(parameter.properties).forEach((property) => {
+      // eslint-disable-next-line no-use-before-define
+      definition += `${getText(parameter.properties[property])},
+      `;
+    });
+  } else {
+    throw Error('Object definition doesn\'t have properties.');
+  }
+
+  definition = `${definition.trim().substr(0, definition.length - 1)}
+})`;
+
+  return getKeyText(parameter, definition);
+};
+
+const getText = (parameter) => {
+  let text = '';
+  switch (parameter.type) {
+    case 'string':
+      text = getKeyStringText(parameter);
+      break;
+    case 'integer':
+      text = getKeyIntegerText(parameter);
+      break;
+    case 'number':
+      text = getKeyNumberText(parameter);
+      break;
+    case 'array':
+      text = getKeyArrayText(parameter);
+      break;
+    case 'object':
+      text = getKeyObjectText(parameter);
+      break;
+    default:
+      throw new Error('Unexpected parameter type.');
+  }
+  return text;
 };
 
 const parse = (parameters) => {
@@ -43,31 +123,14 @@ const parse = (parameters) => {
 
   let pathJoi = '';
   let queryJoi = '';
-
-  // {
-  //     name: 'projectId',
-  //     in: 'query',
-  //     description: 'ID of project with contracts',
-  //     required: true,
-  //     type: 'string',
-  //     format: 'uuid'
-  //   }
+  let bodyJoi = '';
 
   parameters.forEach((parameter) => {
-    let keyText = '';
-    switch (parameter.type) {
-      case 'string':
-        keyText = getKeyStringText(parameter);
-        break;
-      case 'integer':
-        keyText = getKeyIntegerText(parameter);
-        break;
-      default:
-        throw new Error('Unexpected parameter type.');
-    }
+    const keyText = getText(parameter);
 
     if (parameter.in === 'path') pathJoi += keyText;
     else if (parameter.in === 'query') queryJoi += keyText;
+    else if (parameter.in === 'body') bodyJoi += keyText;
   });
 
   let finalText = `{
@@ -81,6 +144,12 @@ const parse = (parameters) => {
   if (pathJoi.length > 0) {
     finalText += `params: Joi.object().keys({
     ${pathJoi.substr(0, pathJoi.length - 1)}
+  }),`;
+  }
+
+  if (bodyJoi.length > 0) {
+    finalText += `body: Joi.object().keys({
+    ${bodyJoi.substr(0, bodyJoi.length - 1)}
   }),`;
   }
 
