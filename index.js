@@ -4,7 +4,7 @@ const getCommonProperties = (parameter) => {
     commonProperties += '.required()';
   }
   if ('description' in parameter) {
-    commonProperties += `.description(${parameter.description})`;
+    commonProperties += `.description('${parameter.description}')`;
   }
 
   return commonProperties;
@@ -15,7 +15,8 @@ const getKeyText = (parameter, definition) => {
   const isSimpleKeyName = parameter.name.match(/^\w+$/);
   const quoteSign = isSimpleKeyName ? '' : '\'';
 
-  return `${quoteSign}${parameter.name}${quoteSign}: ${definition}${commonProperties},`;
+  return `${quoteSign}${parameter.name}${quoteSign}: ${definition}${commonProperties},
+    `;
 };
 
 const getKeyStringText = (parameter) => {
@@ -41,9 +42,8 @@ const getKeyStringText = (parameter) => {
   return getKeyText(parameter, definition);
 };
 
-const getKeyNumberText = (parameter) => {
-  let definition = 'Joi.number()';
-
+const getCommonNumberText = (parameter) => {
+  let definition = '';
   if ('minimum' in parameter) {
     definition += `.min(${parameter.minimum})`;
   }
@@ -51,11 +51,22 @@ const getKeyNumberText = (parameter) => {
     definition += `.max(${parameter.maximum})`;
   }
 
+  return definition;
+};
+
+const getKeyNumberText = (parameter) => {
+  let definition = 'Joi.number()';
+
+  definition += getCommonNumberText(parameter);
+
   return getKeyText(parameter, definition);
 };
 
 const getKeyIntegerText = (parameter) => {
-  const definition = `${getKeyNumberText(parameter)}.integer()`;
+  let definition = 'Joi.number().integer()';
+
+  definition += getCommonNumberText(parameter);
+
   return getKeyText(parameter, definition);
 };
 
@@ -113,7 +124,7 @@ const getText = (parameter) => {
       text = getKeyObjectText(parameter);
       break;
     default:
-      throw new Error('Unexpected parameter type.');
+      throw new Error(`Unexpected parameter type ${parameter.type} in parameter named ${parameter.name}.`);
   }
   return text;
 };
@@ -133,30 +144,27 @@ const parse = (parameters) => {
     else if (parameter.in === 'body') bodyJoi += keyText;
   });
 
-  let finalText = `{
-  `;
+  const rObject = {};
+
   if (queryJoi.length > 0) {
-    finalText += `query: Joi.object().keys({
+    rObject.query = `Joi.object().keys({
     ${queryJoi.substr(0, queryJoi.length - 1)}
-  }),`;
+  })`;
   }
 
   if (pathJoi.length > 0) {
-    finalText += `params: Joi.object().keys({
+    rObject.path = `Joi.object().keys({
     ${pathJoi.substr(0, pathJoi.length - 1)}
-  }),`;
+  })`;
   }
 
   if (bodyJoi.length > 0) {
-    finalText += `body: Joi.object().keys({
+    rObject.body = `Joi.object().keys({
     ${bodyJoi.substr(0, bodyJoi.length - 1)}
-  }),`;
+  })`;
   }
 
-  if (finalText.length < 10) return null;
-
-  return `${finalText.substr(0, finalText.length - 1)}
-}`;
+  return rObject;
 };
 
 module.exports = parse;

@@ -9,7 +9,8 @@ Example usage:
 ```javascript
 const swaggerToJoi = require('swagger-to-joi');
 
-const joiText = swaggerToJoi(swaggerRouteParametersInJson);
+const joiTextObject = swaggerToJoi(swaggerRouteParametersInJson);
 
-// store joiText to a file
+// process joiTextObject or store joi definitions to a file
+// returning object contain separate definitions for path, query and body
 ```
