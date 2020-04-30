@@ -26,15 +26,31 @@ const getKeyText = (parameter, definition, addCommonProperties = true) => {
     `;
 };
 
+const getFormat = (parameter) => {
+  if (parameter.format === 'uuid' || parameter.format === 'guid' || (parameter.schema && parameter.schema.format === 'uuid') || (parameter.schema && parameter.schema.format === 'guid')) {
+    return 'uuid';
+  }
+  if (parameter.format === 'email' || (parameter.schema && parameter.schema.format === 'email')) {
+    return 'email';
+  }
+  if (parameter.format === 'uri' || (parameter.schema && parameter.schema.format === 'uri')) {
+    return 'uri';
+  }
+  if (parameter.format === 'hostname' || (parameter.schema && parameter.schema.format === 'hostname')) {
+    return 'hostname';
+  }
+};
+
 const getKeyStringText = (parameter) => {
   let definition = 'Joi.string()';
-  if (parameter.format === 'uuid' || (parameter.schema && parameter.schema.format === 'uuid')) {
+  const format = getFormat(parameter);
+  if (format === 'uuid') {
     definition += '.guid()';
-  } else if (parameter.format === 'email' || (parameter.schema && parameter.schema.format === 'email')) {
+  } else if (format === 'email') {
     definition += '.email()';
-  } else if (parameter.format === 'uri' || (parameter.schema && parameter.schema.format === 'uri')) {
+  } else if (format === 'uri') {
     definition += '.uri()';
-  } else if (parameter.format === 'hostname' || (parameter.schema && parameter.schema.format === 'hostname')) {
+  } else if (format === 'hostname') {
     definition += '.hostname()';
   }
 
@@ -116,8 +132,9 @@ const getKeyComponentText = (parameter) => {
   let definition = '';
   if ('properties' in parameter) {
     Object.keys(parameter.properties).forEach((propertyName) => {
+      const required = parameter.required && parameter.required.includes(propertyName);
       // eslint-disable-next-line no-use-before-define
-      definition += `${getText({ ...parameter.properties[propertyName], name: propertyName })}`;
+      definition += `${getText({ ...parameter.properties[propertyName], required, name: propertyName })}`;
     });
   } else {
     throw Error('Object definition doesn\'t have properties.');
@@ -129,12 +146,14 @@ const getKeyComponentText = (parameter) => {
 };
 
 const findComponentByPath = (path) => {
-  const componentName = path.replace('#/components/schemas/', '');
+  const componentPath = path.replace('#/components/', '');
 
-  if (!components.schemas[componentName]) {
-    throw Error(`component ${componentName} not found.`);
+  const foundComponent = componentPath.split('/').reduce((o, i) => o[i], components);
+
+  if (!foundComponent) {
+    throw Error(`component ${componentPath} not found.`);
   }
-  return components.schemas[componentName];
+  return foundComponent;
 };
 
 const getText = (parameter) => {
