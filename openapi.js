@@ -28,13 +28,13 @@ const getKeyText = (parameter, definition, addCommonProperties = true) => {
 
 const getKeyStringText = (parameter) => {
   let definition = 'Joi.string()';
-  if (parameter.format === 'uuid') {
+  if (parameter.format === 'uuid' || (parameter.schema && parameter.schema.format === 'uuid')) {
     definition += '.guid()';
-  } else if (parameter.format === 'email') {
+  } else if (parameter.format === 'email' || (parameter.schema && parameter.schema.format === 'email')) {
     definition += '.email()';
-  } else if (parameter.format === 'uri') {
+  } else if (parameter.format === 'uri' || (parameter.schema && parameter.schema.format === 'uri')) {
     definition += '.uri()';
-  } else if (parameter.format === 'hostname') {
+  } else if (parameter.format === 'hostname' || (parameter.schema && parameter.schema.format === 'hostname')) {
     definition += '.hostname()';
   }
 
