@@ -23,8 +23,6 @@
   },
   "homepage": "https://github.com/galethil/swagger-to-joi#readme",
   "dependencies": {
-    "@hapi/joi": "^17.1.1",
-    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
