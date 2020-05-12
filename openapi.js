@@ -6,7 +6,7 @@ const getCommonProperties = (parameter) => {
     commonProperties += '.required()';
   }
   if ('description' in parameter) {
-    commonProperties += `.description('${parameter.description}')`;
+    commonProperties += `.description('${parameter.description.replace("'", "\\'")}')`;
   }
 
   // check if there is a x-joi-add
@@ -19,7 +19,7 @@ const getCommonProperties = (parameter) => {
 
 const getKeyText = (parameter, definition, addCommonProperties = true) => {
   const commonProperties = addCommonProperties ? getCommonProperties(parameter) : '';
-  const isSimpleKeyName = parameter.name.match(/^\w+$/);
+  const isSimpleKeyName = parameter.name.match(/^[\w$]+$/);
   const quoteSign = isSimpleKeyName ? '' : '\'';
 
   return `${quoteSign}${parameter.name}${quoteSign}: ${definition}${commonProperties},
@@ -81,6 +81,12 @@ const getKeyNumberText = (parameter) => {
   let definition = 'Joi.number()';
 
   definition += getCommonNumberText(parameter);
+
+  return getKeyText(parameter, definition);
+};
+
+const getKeyBooleanText = (parameter) => {
+  const definition = 'Joi.boolean()';
 
   return getKeyText(parameter, definition);
 };
@@ -177,6 +183,9 @@ const getText = (parameter) => {
     case 'string':
       text = getKeyStringText(parameter);
       break;
+    case 'boolean':
+      text = getKeyBooleanText(parameter);
+      break;
     case 'integer':
       text = getKeyIntegerText(parameter);
       break;
@@ -190,7 +199,7 @@ const getText = (parameter) => {
       text = getKeyObjectText(parameter);
       break;
     default:
-      throw new Error(`Unexpected parameter type ${parameter.schema.type} in parameter named ${parameter.name}.`);
+      throw new Error(`Unexpected parameter type ${type} in parameter named ${parameter.name}.`);
   }
 
   return text;
