@@ -55,7 +55,7 @@ const getKeyStringText = (parameter) => {
   }
 
   if ('pattern' in parameter) {
-    definition += `.regex(${parameter.pattern})`;
+    definition += `.regex(/${parameter.pattern}/)`;
   }
 
   if ('enum' in parameter) {
