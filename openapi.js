@@ -19,6 +19,8 @@ const getCommonProperties = (parameter) => {
 
 const getKeyText = (parameter, definition, addCommonProperties = true) => {
   const commonProperties = addCommonProperties ? getCommonProperties(parameter) : '';
+  if (!('name' in parameter)) return `${definition}${commonProperties}`;
+
   const isSimpleKeyName = parameter.name.match(/^[\w$]+$/);
   const quoteSign = isSimpleKeyName ? '' : '\'';
 
@@ -61,7 +63,6 @@ const getKeyStringText = (parameter) => {
   if ('enum' in parameter) {
     definition += `.valid('${parameter.enum.join('\', \'')}')`;
   }
-
   return getKeyText(parameter, definition);
 };
 
@@ -104,7 +105,7 @@ const getKeyArrayText = (parameter) => {
     `;
   if ('items' in parameter) {
     // eslint-disable-next-line no-use-before-define
-    definition += getText(parameter.items);
+    definition += getText({ ...parameter.items, test: true });
   } else {
     throw Error('Array definition doesn\'t have items.');
   }
@@ -119,10 +120,9 @@ const getKeyObjectText = (parameter) => {
   let definition = `Joi.object().keys({
     `;
   if ('properties' in parameter) {
-    Object.keys(parameter.properties).forEach((property) => {
+    Object.keys(parameter.properties).forEach((propertyName) => {
       // eslint-disable-next-line no-use-before-define
-      definition += `${getText(parameter.properties[property])},
-      `;
+      definition += `${getText({ ...parameter.properties[propertyName], name: propertyName })}`;
     });
   } else {
     throw Error('Object definition doesn\'t have properties.');
@@ -141,6 +141,17 @@ const getKeyComponentText = (parameter) => {
       const required = parameter.required && parameter.required.includes(propertyName);
       // eslint-disable-next-line no-use-before-define
       definition += `${getText({ ...parameter.properties[propertyName], required, name: propertyName })}`;
+    });
+  } else if ('allOf' in parameter) {
+    let properties = {};
+    parameter.allOf.forEach((propertiesDefinition) => {
+      if ('$ref' in propertiesDefinition) {
+        // eslint-disable-next-line no-use-before-define
+        const component = findComponentByPath(propertiesDefinition.$ref, components);
+        properties = { ...properties, ...component.properties };
+      } else if ('properties' in propertiesDefinition) {
+        properties = { ...properties, ...propertiesDefinition.properties };
+      }
     });
   } else {
     throw Error('Object definition doesn\'t have properties.');
@@ -175,6 +186,11 @@ const getText = (parameter) => {
   // check if there is a x-joi-replace
   if (parameter['x-joi-replace']) {
     return getKeyText(parameter, parameter['x-joi-replace'], false);
+  }
+
+  // in case this is a reference we need to replace it with referenced type
+  if ('$ref' in parameter) {
+    parameter = findComponentByPath(parameter['$ref']);
   }
 
   const type = parameter.schema ? parameter.schema.type : parameter.type;
