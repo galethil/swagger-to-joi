@@ -226,6 +226,9 @@ const getRequestBodyText = (route) => {
   if (requestBody.content && requestBody.content['application/json']) {
     return getText({ ...requestBody.content['application/json'], operationId, description }, components);
   }
+  if (requestBody.content && requestBody.content['multipart/form-data']) {
+    return getText({ ...requestBody.content['multipart/form-data'], operationId, description }, components);
+  }
 };
 
 const parse = (route, componentsParam) => {
