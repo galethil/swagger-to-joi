@@ -5,7 +5,7 @@ const parse = (route, components, version = '3.0.0') => {
   if (!route) throw new Error('No route was passed.');
 
   if (version === '2.0') {
-    return swagger(route.parameters);
+    return swagger(route);
   }
 
   if (version === '3.0.0') {

@@ -1,6 +1,6 @@
 const getCommonProperties = (parameter) => {
   let commonProperties = '';
-  if (parameter.required) {
+  if (parameter.required && parameter.required === true) {
     commonProperties += '.required()';
   }
   if ('description' in parameter) {
@@ -12,6 +12,8 @@ const getCommonProperties = (parameter) => {
 
 const getKeyText = (parameter, definition) => {
   const commonProperties = getCommonProperties(parameter);
+  if (!parameter.name) return `${definition}${commonProperties}`;
+
   const isSimpleKeyName = parameter.name.match(/^\w+$/);
   const quoteSign = isSimpleKeyName ? '' : '\'';
 
@@ -87,21 +89,42 @@ const getKeyArrayText = (parameter) => {
 };
 
 const getKeyObjectText = (parameter) => {
-  let definition = `Joi.object().keys({
-    `;
-  if ('properties' in parameter) {
-    Object.keys(parameter.properties).forEach((property) => {
-      // eslint-disable-next-line no-use-before-define
-      definition += `${getText(parameter.properties[property])},
-      `;
-    });
-  } else {
-    throw Error('Object definition doesn\'t have properties.');
+  // if this is an object we want to preserve required properties
+  if (parameter.required && Array.isArray(parameter.required)) {
+    // eslint-disable-next-line no-param-reassign
+    parameter.requiredProperties = parameter.required;
   }
 
-  definition = `${definition.trim().substr(0, definition.length - 1)}
-})`;
+  let definition = 'Joi.object()';
+  if ('properties' in parameter) {
+    definition += `.keys({
+  `;
+    Object.keys(parameter.properties).forEach((propertyName) => {
+      const property = parameter.properties[propertyName];
+      // add name if missing
+      if (!property.name) {
+        property.name = propertyName;
+      }
 
+      // if this is an object we want to preserve required properties
+      if (property.required && Array.isArray(property.required)) {
+        property.requiredProperties = property.required;
+      }
+
+      // add required if missing
+      if (parameter.requiredProperties
+        && Array.isArray(parameter.requiredProperties)
+        && parameter.requiredProperties.includes(property.name)
+      ) {
+        property.required = true;
+      }
+      // eslint-disable-next-line no-use-before-define
+      definition += `${getText(property)}`;
+    });
+    definition = `${definition.trim().substr(0, definition.length - 1)}
+})`;
+  }
+  // console.log(definition);
   return getKeyText(parameter, definition);
 };
 
@@ -129,22 +152,26 @@ const getText = (parameter) => {
   return text;
 };
 
-const parse = (parameters) => {
-  if (!parameters) throw new Error('No parameters were passed.');
-
+const parse = (route) => {
+  const rObject = {};
   let pathJoi = '';
   let queryJoi = '';
   let bodyJoi = '';
 
-  parameters.forEach((parameter) => {
-    const keyText = getText(parameter);
+  if (route.parameters) {
+    route.parameters.forEach((parameter) => {
+      const keyText = getText(parameter);
 
-    if (parameter.in === 'path') pathJoi += keyText;
-    else if (parameter.in === 'query') queryJoi += keyText;
-    else if (parameter.in === 'body') bodyJoi += keyText;
-  });
+      if (parameter.in === 'path') pathJoi += keyText;
+      else if (parameter.in === 'query') queryJoi += keyText;
+      else if (parameter.in === 'body') bodyJoi += keyText;
+    });
+  }
 
-  const rObject = {};
+  if (route.body) {
+    const keyText = getKeyObjectText(route.body);
+    rObject.body = keyText;
+  }
 
   if (queryJoi.length > 0) {
     rObject.query = `Joi.object().keys({

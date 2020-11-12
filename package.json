@@ -1,6 +1,6 @@
 {
   "name": "swagger-to-joi",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Swagger to Joi schema converter",
   "main": "index.js",
   "scripts": {
@@ -22,8 +22,7 @@
     "url": "https://github.com/galethil/swagger-to-joi/issues"
   },
   "homepage": "https://github.com/galethil/swagger-to-joi#readme",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "^6.8.0",
