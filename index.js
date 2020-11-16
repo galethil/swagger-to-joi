@@ -24,7 +24,7 @@ const validateOptions = (options) => {
 const parse = (route, components, version = '3.0.0', options) => {
   if (!route) throw new Error('No route was passed.');
   const opt = validateOptions(options);
-console.log('dsdsds');
+
   if (version === '2.0') {
     return swagger(route, opt);
   }
