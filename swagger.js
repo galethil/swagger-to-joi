@@ -9,11 +9,16 @@ const getCommonProperties = (parameter) => {
     commonProperties += `.description('${parameter.description}')`;
   }
 
+  // check if there is a x-joi-add
+  if (parameter['x-joi-add']) {
+    commonProperties += parameter['x-joi-add'];
+  }
+
   return commonProperties;
 };
 
-const getKeyText = (parameter, definition) => {
-  const commonProperties = getCommonProperties(parameter);
+const getKeyText = (parameter, definition, addCommonProperties = true) => {
+  const commonProperties = addCommonProperties ? getCommonProperties(parameter) : '';
   if (!parameter.name) return `${definition}${commonProperties}`;
 
   const isSimpleKeyName = parameter.name.match(/^\w+$/);
@@ -147,6 +152,11 @@ const getKeyObjectText = (parameter) => {
 };
 
 const getText = (parameter) => {
+  // check if there is a x-joi-replace
+  if (parameter['x-joi-replace']) {
+    return getKeyText(parameter, parameter['x-joi-replace'], false);
+  }
+
   let text = '';
   switch (parameter.type) {
     case 'string':
