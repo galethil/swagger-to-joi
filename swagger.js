@@ -38,6 +38,18 @@ const getKeyStringText = (parameter) => {
     definition += '.hostname()';
   }
 
+  if ('minLength' in parameter) {
+    if (parameter.minLength === 0) {
+      definition += `.allow(${correctQuote}${correctQuote})`;
+    } else {
+      definition += `.min(${parameter.minLength})`;
+    }
+  }
+
+  if ('maxLength' in parameter) {
+    definition += `.max(${parameter.minLength})`;
+  }
+
   if ('pattern' in parameter) {
     definition += `.regex(${parameter.pattern})`;
   }

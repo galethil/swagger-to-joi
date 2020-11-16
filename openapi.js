@@ -1,4 +1,5 @@
 let components;
+let options = {};
 
 const getCommonProperties = (parameter) => {
   let commonProperties = '';
@@ -44,6 +45,8 @@ const getFormat = (parameter) => {
 };
 
 const getKeyStringText = (parameter) => {
+  const correctQuote = options.singleQuote === true ? '\'' : '"';
+
   let definition = 'Joi.string()';
   const format = getFormat(parameter);
   if (format === 'uuid') {
@@ -54,6 +57,12 @@ const getKeyStringText = (parameter) => {
     definition += '.uri()';
   } else if (format === 'hostname') {
     definition += '.hostname()';
+  }
+
+  if ('minLength' in parameter) {
+    if (parameter.minLength === 0) {
+      definition += `.allow(${correctQuote}${correctQuote})`;
+    }
   }
 
   if ('pattern' in parameter) {
@@ -231,10 +240,11 @@ const getRequestBodyText = (route) => {
   }
 };
 
-const parse = (route, componentsParam) => {
+const parse = (route, componentsParam, opt) => {
   if (!route) throw new Error('No route was passed.');
 
   components = componentsParam;
+  options = opt;
 
   let pathJoi = '';
   let queryJoi = '';
