@@ -3,7 +3,6 @@ const openapi = require('./openapi');
 
 const validateOptions = (options) => {
   const opt = options;
-  console.log('gsjdg');
   if (typeof opt !== 'object') {
     return {};
   }
