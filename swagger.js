@@ -129,6 +129,14 @@ const getKeyObjectText = (parameter) => {
         property.name = propertyName;
       }
 
+      // check override
+      if ('overrideKeys' in options) {
+        if (propertyName in options.overrideKeys) {
+          definition += getKeyText(property, options.overrideKeys[propertyName], false);
+          return;
+        }
+      }
+
       // if this is an object we want to preserve required properties
       if (property.required && Array.isArray(property.required)) {
         property.requiredProperties = property.required;

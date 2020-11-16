@@ -130,8 +130,18 @@ const getKeyObjectText = (parameter) => {
     `;
   if ('properties' in parameter) {
     Object.keys(parameter.properties).forEach((propertyName) => {
+      const property = { ...parameter.properties[propertyName], name: propertyName };
+
+      // check override
+      if ('overrideKeys' in options) {
+        if (propertyName in options.overrideKeys) {
+          definition += getKeyText(property, options.overrideKeys[propertyName], false);
+          return;
+        }
+      }
+
       // eslint-disable-next-line no-use-before-define
-      definition += `${getText({ ...parameter.properties[propertyName], name: propertyName })}`;
+      definition += `${getText(property)}`;
     });
   } else {
     throw Error('Object definition doesn\'t have properties.');
