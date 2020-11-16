@@ -1,6 +1,6 @@
 {
   "name": "swagger-to-joi",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Swagger to Joi schema converter",
   "main": "index.js",
   "scripts": {

@@ -1,3 +1,5 @@
+let options = {};
+
 const getCommonProperties = (parameter) => {
   let commonProperties = '';
   if (parameter.required && parameter.required === true) {
@@ -15,13 +17,16 @@ const getKeyText = (parameter, definition) => {
   if (!parameter.name) return `${definition}${commonProperties}`;
 
   const isSimpleKeyName = parameter.name.match(/^\w+$/);
-  const quoteSign = isSimpleKeyName ? '' : '\'';
+  const correctQuote = options.singleQuote === true ? '\'' : '"';
+  const quoteSign = isSimpleKeyName ? '' : correctQuote;
 
   return `${quoteSign}${parameter.name}${quoteSign}: ${definition}${commonProperties},
     `;
 };
 
 const getKeyStringText = (parameter) => {
+  const correctQuote = options.singleQuote === true ? '\'' : '"';
+
   let definition = 'Joi.string()';
   if (parameter.format === 'uuid') {
     definition += '.guid()';
@@ -38,7 +43,8 @@ const getKeyStringText = (parameter) => {
   }
 
   if ('enum' in parameter) {
-    definition += `.valid('${parameter.enum.join('\', \'')}')`;
+    const joinString = `${correctQuote}, ${correctQuote}`;
+    definition += `.valid(${correctQuote}${parameter.enum.join(joinString)}${correctQuote})`;
   }
 
   return getKeyText(parameter, definition);
@@ -152,7 +158,9 @@ const getText = (parameter) => {
   return text;
 };
 
-const parse = (route) => {
+const parse = (route, opt) => {
+  options = opt;
+
   const rObject = {};
   let pathJoi = '';
   let queryJoi = '';
