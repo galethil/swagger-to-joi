@@ -1,4 +1,5 @@
 let options = {};
+let intend = '  ';
 
 const getCommonProperties = (parameter) => {
   let commonProperties = '';
@@ -26,7 +27,7 @@ const getKeyText = (parameter, definition, addCommonProperties = true) => {
   const quoteSign = isSimpleKeyName ? '' : correctQuote;
 
   return `${quoteSign}${parameter.name}${quoteSign}: ${definition}${commonProperties},
-    `;
+  `;
 };
 
 const getKeyStringText = (parameter) => {
@@ -96,17 +97,22 @@ const getKeyIntegerText = (parameter) => {
 };
 
 const getKeyArrayText = (parameter) => {
+  if (!('level' in parameter)) {
+    // eslint-disable-next-line no-param-reassign
+    parameter.level = 0;
+  }
+
   let definition = `Joi.array().items(
-    `;
+  ${intend.repeat(parameter.level)}`;
   if ('items' in parameter) {
     // eslint-disable-next-line no-use-before-define
-    definition += getText(parameter.items);
+    definition += getText({ ...parameter.items, level: parameter.level + 1 });
   } else {
     throw Error('Array definition doesn\'t have items.');
   }
 
   definition += `
-)`;
+${intend.repeat(parameter.level)})`;
 
   return getKeyText(parameter, definition);
 };
@@ -116,6 +122,11 @@ const getKeyObjectText = (parameter) => {
   if (parameter.required && Array.isArray(parameter.required)) {
     // eslint-disable-next-line no-param-reassign
     parameter.requiredProperties = parameter.required;
+  }
+
+  if (!('level' in parameter)) {
+    // eslint-disable-next-line no-param-reassign
+    parameter.level = 0;
   }
 
   let definition = 'Joi.object()';
@@ -128,6 +139,8 @@ const getKeyObjectText = (parameter) => {
       if (!property.name) {
         property.name = propertyName;
       }
+
+      property.level = parameter.level + 1;
 
       // check override
       if ('overrideKeys' in options) {
@@ -153,7 +166,7 @@ const getKeyObjectText = (parameter) => {
       definition += `${getText(property)}`;
     });
     definition = `${definition.trim().substr(0, definition.length - 1)}
-})`;
+${intend.repeat(parameter.level)}})`;
   }
   // console.log(definition);
   return getKeyText(parameter, definition);

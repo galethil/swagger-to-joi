@@ -1,5 +1,6 @@
 let components;
 let options = {};
+let intend = '  ';
 
 const getCommonProperties = (parameter) => {
   let commonProperties = '';
@@ -110,27 +111,37 @@ const getKeyIntegerText = (parameter) => {
 };
 
 const getKeyArrayText = (parameter) => {
+  if (!('level' in parameter)) {
+    // eslint-disable-next-line no-param-reassign
+    parameter.level = 0;
+  }
+
   let definition = `Joi.array().items(
     `;
   if ('items' in parameter) {
     // eslint-disable-next-line no-use-before-define
-    definition += getText({ ...parameter.items, test: true });
+    definition += getText({ ...parameter.items, level: parameter.level + 1 });
   } else {
     throw Error('Array definition doesn\'t have items.');
   }
 
   definition += `
-)`;
+${intend.repeat(parameter.level)})`;
 
   return getKeyText(parameter, definition);
 };
 
 const getKeyObjectText = (parameter) => {
+  if (!('level' in parameter)) {
+    // eslint-disable-next-line no-param-reassign
+    parameter.level = 0;
+  }
+
   let definition = `Joi.object().keys({
     `;
   if ('properties' in parameter) {
     Object.keys(parameter.properties).forEach((propertyName) => {
-      const property = { ...parameter.properties[propertyName], name: propertyName };
+      const property = { ...parameter.properties[propertyName], name: propertyName, level: parameter.level + 1 };
 
       // check override
       if ('overrideKeys' in options) {
@@ -148,7 +159,7 @@ const getKeyObjectText = (parameter) => {
   }
 
   definition = `${definition.trim().substr(0, definition.length - 1)}
-})`;
+${intend.repeat(parameter.level)}})`;
 
   return getKeyText(parameter, definition);
 };
