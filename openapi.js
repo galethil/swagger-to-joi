@@ -161,6 +161,10 @@ const getKeyObjectText = (parameter) => {
   definition = `${definition.trim().substr(0, definition.length - 1)}
 ${intend.repeat(parameter.level)}})`;
 
+  if ('additionalProperties' in parameter && parameter.additionalProperties === true) {
+    definition += '.unknown()';
+  }
+
   return getKeyText(parameter, definition);
 };
 

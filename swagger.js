@@ -27,7 +27,7 @@ const getKeyText = (parameter, definition, addCommonProperties = true) => {
   const quoteSign = isSimpleKeyName ? '' : correctQuote;
 
   return `${quoteSign}${parameter.name}${quoteSign}: ${definition}${commonProperties},
-  `;
+${intend.repeat(parameter.level)}`;
 };
 
 const getKeyStringText = (parameter) => {
@@ -132,7 +132,7 @@ const getKeyObjectText = (parameter) => {
   let definition = 'Joi.object()';
   if ('properties' in parameter) {
     definition += `.keys({
-  `;
+  ${intend.repeat(parameter.level)}`;
     Object.keys(parameter.properties).forEach((propertyName) => {
       const property = parameter.properties[propertyName];
       // add name if missing
@@ -167,6 +167,9 @@ const getKeyObjectText = (parameter) => {
     });
     definition = `${definition.trim().substr(0, definition.length - 1)}
 ${intend.repeat(parameter.level)}})`;
+    if ('additionalProperties' in parameter && parameter.additionalProperties === true) {
+      definition += '.unknown()';
+    }
   }
   // console.log(definition);
   return getKeyText(parameter, definition);
