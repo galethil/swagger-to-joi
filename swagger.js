@@ -134,6 +134,9 @@ const getKeyObjectText = (parameter) => {
     definition += `.keys({
   ${intend.repeat(parameter.level)}`;
     Object.keys(parameter.properties).forEach((propertyName) => {
+      // skip additionalProperties if they are present
+      if (propertyName === 'additionalProperties') return;
+
       const property = parameter.properties[propertyName];
       // add name if missing
       if (!property.name) {
