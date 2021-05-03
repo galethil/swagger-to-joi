@@ -1,6 +1,6 @@
 {
   "name": "swagger-to-joi",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Swagger to Joi schema converter",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,6 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.2",
-    "mocha": "^7.1.1"
+    "mocha": "^8.3.2"
   }
 }
