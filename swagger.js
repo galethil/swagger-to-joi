@@ -6,7 +6,7 @@ const getCommonProperties = (parameter) => {
   if (parameter.required && parameter.required === true) {
     commonProperties += '.required()';
   }
-  if ('description' in parameter) {
+  if (parameter.description) {
     commonProperties += `.description('${parameter.description}')`;
   }
 
@@ -107,6 +107,9 @@ const getKeyArrayText = (parameter) => {
   if ('items' in parameter) {
     // eslint-disable-next-line no-use-before-define
     definition += getText({ ...parameter.items, level: parameter.level + 1 });
+  } else if ('items' in parameter.schema) {
+    // eslint-disable-next-line no-use-before-define
+    definition += getText({ ...parameter.schema.items, level: parameter.level + 1 });
   } else {
     throw Error('Array definition doesn\'t have items.');
   }
