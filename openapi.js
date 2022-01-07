@@ -216,8 +216,10 @@ const getText = (parameter) => {
   // check if this is a component structure
   if (parameter.schema && parameter.schema.$ref) {
     const component = findComponentByPath(parameter.schema.$ref, components);
-
-    return getKeyComponentText({ ...component, name: parameter.operationId });
+    if ('properties' in component || 'allOf' in component) {
+      return getKeyComponentText({ ...component, name: parameter.operationId });
+    }
+    parameter.schema = component;
   }
 
   // check if there is a x-joi-replace
