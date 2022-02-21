@@ -7,7 +7,7 @@ const getCommonProperties = (parameter) => {
   if (parameter.required) {
     commonProperties += '.required()';
   }
-  if ('description' in parameter) {
+  if (parameter.description) {
     commonProperties += `.description('${parameter.description.replace("'", "\\'")}')`;
   }
 
@@ -121,6 +121,9 @@ const getKeyArrayText = (parameter) => {
   if ('items' in parameter) {
     // eslint-disable-next-line no-use-before-define
     definition += getText({ ...parameter.items, level: parameter.level + 1 });
+  } else if ('items' in parameter.schema) {
+    // eslint-disable-next-line no-use-before-define
+    definition += getText({ ...parameter.schema.items, level: parameter.level + 1 });
   } else {
     throw Error('Array definition doesn\'t have items.');
   }
@@ -213,8 +216,10 @@ const getText = (parameter) => {
   // check if this is a component structure
   if (parameter.schema && parameter.schema.$ref) {
     const component = findComponentByPath(parameter.schema.$ref, components);
-
-    return getKeyComponentText({ ...component, name: parameter.operationId });
+    if ('properties' in component || 'allOf' in component) {
+      return getKeyComponentText({ ...component, name: parameter.operationId });
+    }
+    parameter.schema = component;
   }
 
   // check if there is a x-joi-replace
